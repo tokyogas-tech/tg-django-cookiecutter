@@ -1,0 +1,3 @@
+develop: PYTHONUNBUFFERED=true DJANGO_SETTINGS_MODULE={{ cookiecutter.python_package_name }}.settings.configuration.localhost python manage.py runserver 0.0.0.0:8000
+rabbitmq: celery -A {{ cookiecutter.python_package_name }} -b amqp://guest:guest@rabbitmq:5672/ worker -l info
+# Add process here

@@ -1,0 +1,21 @@
+name: Run mypy
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "{{ cookiecutter.python_long_version }}"
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry config virtualenvs.in-project true
+          poetry install
+      - name: mypy
+        run: |
+          source .venv/bin/activate
+          cd src && python -m mypy --package {{ cookiecutter.python_package_name }} --config-file ../pyproject.toml --cache-dir=/dev/null

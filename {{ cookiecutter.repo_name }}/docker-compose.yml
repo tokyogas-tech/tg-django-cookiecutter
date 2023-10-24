@@ -1,0 +1,50 @@
+version: '3'
+
+volumes:
+  database_data:
+    driver: local
+  rabbitmq_data:
+
+services:
+  {{ cookiecutter.repo_name }}:
+    build:
+      context: .
+      dockerfile: ./.dockerfiles/server-dev
+    working_dir: /var/{{ cookiecutter.repo_name }}
+    ports:
+      - "8000:8000"
+      - "2222:22"
+    volumes:
+      - .:/var/{{ cookiecutter.repo_name }}
+    environment:
+      DJANGO_SETTINGS_MODULE: {{ cookiecutter.python_package_name }}.settings.configuration.localhost
+      DB_HOST: postgresql
+    depends_on:
+      - postgresql
+
+  postgresql:
+    build:
+      context: .
+      dockerfile: ./.dockerfiles/postgresql-dev
+    expose:
+      - 5432
+    volumes:
+      - database_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: localhost
+      POSTGRES_DB: {{ cookiecutter.database_name }}
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3.12.6-management
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq/data
+
+  mail:
+    image: schickling/mailcatcher
+    ports:
+     - "1080:1080"
+     - "1025:1025"
