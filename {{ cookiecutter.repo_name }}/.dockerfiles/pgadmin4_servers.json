@@ -1,0 +1,13 @@
+{
+    "Servers": {
+        "1": {
+            "Name": "{{ cookiecutter.service_name }}",
+            "Group": "Servers",
+            "Port": 5432,
+            "Username": "postgres",
+            "Host": "postgresql",
+            "SSLMode": "prefer",
+            "MaintenanceDB": "postgres"
+        }
+    }
+}

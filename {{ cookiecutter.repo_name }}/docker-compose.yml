@@ -1,0 +1,110 @@
+version: "3"
+
+volumes:
+  frontend_notused:
+  pgadmin_data:
+  postgresql_data:
+  redis_data:
+
+x-backend-defaults: &backend-defaults
+  image: {{ cookiecutter.repo_name }}-backend:dev
+  build:
+    context: .
+    dockerfile: .dockerfiles/Dockerfile.backend-dev
+  volumes:
+    - .:/app
+  environment: &backend-defaults-environment
+    DB_HOST: postgresql
+    APPCONFIG_HOST: http://appconfig:2772
+
+services:
+  backend-app:
+    <<: *backend-defaults
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      backend-init:
+        condition: service_completed_successfully
+
+  backend-worker:
+    <<: *backend-defaults
+    working_dir: /app/src
+    command: poetry run celery -A {{ cookiecutter.python_package_name }} worker -l info -B
+    depends_on:
+      backend-init:
+        condition: service_completed_successfully
+
+  backend-init:
+    <<: *backend-defaults
+    command: >-
+      sh -eux -c '
+      poetry run python src/manage.py makemigrations --no-input &&
+      poetry run python src/manage.py migrate --no-input &&
+      poetry run python src/manage.py update_group_perms &&
+      poetry run python src/manage.py finduser --username admin ||
+      poetry run python src/manage.py createsuperuser --username=admin --email=info@example.com --no-input
+      '
+    environment:
+      <<: *backend-defaults-environment
+      DJANGO_SUPERUSER_PASSWORD: password
+    restart: on-failure
+    depends_on:
+      - postgresql
+      - redis
+
+  frontend:
+    image: {{ cookiecutter.repo_name }}-frontend:dev
+    build:
+      context: .
+      dockerfile: .dockerfiles/Dockerfile.frontend-dev
+    volumes:
+      - .:/app
+      - frontend_notused:/app/src/{{ cookiecutter.python_package_name }}/node_modules
+    working_dir: /app/src/{{ cookiecutter.python_package_name }}
+    command: gulp
+
+  pgadmin:
+    image: dpage/pgadmin4
+    ports:
+      - "127.0.0.1:8081:80"
+    volumes:
+      - .dockerfiles/pgadmin4_servers.json:/pgadmin4/servers.json
+      - pgadmin_data:/var/lib/pgadmin
+    environment:
+      - "PGADMIN_DEFAULT_EMAIL=admin@example.com"
+      - "PGADMIN_DEFAULT_PASSWORD=password"
+
+  postgresql:
+    image: postgis/postgis
+    ports:
+      - "127.0.0.1:54321:5432"
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: localhost
+      POSTGRES_DB: {{ cookiecutter.database_name }}
+
+  redis:
+    image: redis:latest
+    volumes:
+      - redis_data:/data
+    ports:
+      - "127.0.0.1:6379:6379"
+
+  flower:
+    image: mher/flower:2.0.1
+    environment:
+      FLOWER_PORT: 5555
+      FLOWER_PURGE_OFFLINE_WORKERS: 60
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+      CELERY_BROKER_URL: redis://redis:6379/1
+    ports:
+      - "127.0.0.1:5555:5555"
+    depends_on:
+      - redis
+
+  mail:
+    image: schickling/mailcatcher
+    ports:
+      - "127.0.0.1:1080:1080"
+      - "127.0.0.1:1025:1025"

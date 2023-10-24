@@ -1,0 +1,33 @@
+# Builder image. Currently points to Debian bookworm.
+FROM node:20.15.1-slim as builder
+
+# Use arbitrary directroy (which doesn't conflict with FHS) as application root.
+WORKDIR /app
+
+# Generate node_modules (with development dependencies).
+COPY src/{{ cookiecutter.python_package_name }}/interface/package.json src/{{ cookiecutter.python_package_name }}/interface/package-lock.json .
+
+RUN npm ci --no-optional
+
+# Runner image.
+FROM node:20.15.1-slim
+
+WORKDIR /app/src/{{ cookiecutter.python_package_name }}/interface
+
+# Add Tini: https://github.com/krallin/tini#using-tini
+ENV TINI_VERSION v0.19.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-static /tini
+RUN chmod +x /tini
+ENTRYPOINT ["/tini", "--"]
+
+# Copy node_modules from builder image. This location is strategic;
+# refer to "Solution B: Move Container Modules and Hide Host Modules"
+# of https://www.docker.com/blog/keep-nodejs-rockin-in-docker/ .
+COPY --from=builder /app/node_modules /node_modules
+
+ENV PATH /node_modules/.bin:$PATH
+
+VOLUME ["/app", "/app/src/{{ cookiecutter.python_package_name }}/node_modules"]
+
+# Directry invoke gulp; Do not involve npm, it doesn't handle SIGNAL correctly.
+CMD ["gulp"]

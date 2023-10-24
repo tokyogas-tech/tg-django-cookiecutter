@@ -1,0 +1,23 @@
+name: Pytest
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis:postgis
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: localhost
+          POSTGRES_DB: {{ cookiecutter.database_name }}
+          DJANGO_SETTINGS_MODULE={{ cookiecutter.python_package_name }}.settings.configuration.localhost pytest
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python {{ cookiecutter.python_long_version }}
+        uses: actions/setup-python@v5
+        with:
+          python_version: '{{ cookiecutter.python_long_version }}'
+          command: "poetry run pytest src"
+          test_name: "Pytest"

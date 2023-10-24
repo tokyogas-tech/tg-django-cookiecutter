@@ -1,0 +1,38 @@
+# Builder image. Currently points to Debian bookworm.
+FROM python:{{ cookiecutter.python_long_version }}-slim as builder
+
+# Use arbitrary directroy (which doesn't conflict with FHS) as application root.
+WORKDIR /app
+
+# Install Poetry into a dedicated directory,
+# which needs to be copied to a runner image later on.
+ENV POETRY_HOME=/opt/poetry
+
+# Install Poetry.
+RUN apt-get update \
+    && apt-get install -y curl g++ gcc
+
+RUN curl -sSL https://install.python-poetry.org | python3 -
+
+# Generate virtualenv (with development dependencies).
+COPY poetry.lock pyproject.toml ./
+
+RUN /opt/poetry/bin/poetry install --no-root
+
+# Runner image.
+FROM python:{{ cookiecutter.python_long_version }}-slim
+
+WORKDIR /app
+
+# Copy Poetry itself and virtualenvs from builder image.
+COPY --from=builder /opt/poetry /opt/poetry
+COPY --from=builder /root/.cache/pypoetry /root/.cache/pypoetry
+
+ENV PATH /opt/poetry/bin:$PATH
+ENV DJANGO_SETTINGS_MODULE={{ cookiecutter.python_package_name }}.settings.configuration.docker_compose
+
+VOLUME ["/app"]
+
+EXPOSE 8000
+
+CMD ["poetry", "run", "python", "src/manage.py", "runserver", "0.0.0.0:8000"]

@@ -1,0 +1,9 @@
+{
+  "service_name": "Tokyo Gas",
+  "repo_name": "{{ cookiecutter.service_name.lower().replace(' ', '-') }}",
+  "database_name": "{{ cookiecutter.service_name.lower().replace(' ', '_') }}",
+  "python_package_name": "{{ cookiecutter.service_name.lower().replace(' ', '_') }}",
+  "python_version": "3.12",
+  "python_long_version": "3.12.5",
+  "python_short_version": "{{ cookiecutter.python_version.replace('.', '') }}"
+}
