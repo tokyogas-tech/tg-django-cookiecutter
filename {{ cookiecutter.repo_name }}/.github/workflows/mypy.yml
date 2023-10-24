@@ -1,0 +1,13 @@
+name: Run mypy
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python_version: "{{ cookiecutter.python_long_version }}"
+          command: "poetry run invoke --search-root src backend.run-python-mypy"
+          test_name: "Mypy"

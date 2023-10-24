@@ -1,0 +1,13 @@
+name: Run ruff
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python_version: "{{ cookiecutter.python_long_version }}"
+          command: "poetry run ruff check ."
+          test_name: "Linter"
