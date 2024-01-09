@@ -15,7 +15,7 @@ testpaths = ["./src/tests/*"]
 [tool.poetry.dependencies]
 bcrypt = "^4.0.0"
 celery = "^5.3.4"
-django = "^4.1.11"
+django = "^5.0.0"
 envparse = "^0.2.0"
 invoke = "^2.2.0"
 psycopg2-binary = "^2.9.7"
