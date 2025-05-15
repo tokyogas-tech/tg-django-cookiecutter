@@ -1,5 +1,5 @@
 # Builder image. Currently points to Debian bookworm.
-FROM node:20.15.1-slim as builder
+FROM node:20.19.2-slim as builder
 
 # Use arbitrary directroy (which doesn't conflict with FHS) as application root.
 WORKDIR /app
