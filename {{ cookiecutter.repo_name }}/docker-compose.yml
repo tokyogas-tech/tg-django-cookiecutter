@@ -88,7 +88,7 @@ services:
       - "127.0.0.1:6379:6379"
 
   flower:
-    image: mher/flower:2.0.1
+    image: mher/flower:2.1.0
     environment:
       FLOWER_PORT: 5555
       FLOWER_PURGE_OFFLINE_WORKERS: 60
