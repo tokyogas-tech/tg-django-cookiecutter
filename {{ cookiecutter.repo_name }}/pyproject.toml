@@ -19,7 +19,7 @@ authors = []
 packages = [{ include = "{{ cookiecutter.python_package_name }}", from = "src" }]
 
 [tool.poetry.dependencies]
-bcrypt = "^4.0.0"
+bcrypt = "^5.0.0"
 celery = "^5.3.4"
 django = "^4.2.15"
 django-redis = "^5.4.0"
