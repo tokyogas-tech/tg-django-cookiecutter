@@ -6,7 +6,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python_version: "{{ cookiecutter.python_long_version }}"
           command: "poetry run ruff check ."
